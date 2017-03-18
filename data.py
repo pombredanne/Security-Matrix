@@ -21,15 +21,15 @@ for network/firewall zones to define the trust level of network. The former
 firewall model with system-config-firewall/lokkit was static and every
 change required a complete firewall restart. The firewall daemon on the other
 hand manages the firewall dynamically and applies changes without
-restarting the whole firewall. See [https://fedoraproject.org/wiki/FirewallD FirewallD]
-and [https://fedoraproject.org/wiki/SystemConfig/firewall system-config-firewall]
+restarting the whole firewall. See [[FirewallD|FirewallD]]
+and [[SystemConfig/firewall|system-config-firewall]]
 for more information.
 """ },
 
     {"name": "updates", "short": "Signed updates",
       "depth": 1,
       "desc": """Each stable RPM package that is published by Fedora Project is
-signed with a GPG signature. By default, yum and the graphical update
+signed with a GPG signature. By default, [[dnf|DNF]], [[yum|YUM]] and the graphical update
 tools will verify these signatures and refuse to install any packages that
 are not signed or have bad signatures. You should always verify the
 signature of a package before you install it. These signatures ensure that
@@ -45,7 +45,7 @@ for more information.
 
     {"name": "selinux", "short":"SELinux",
       "depth": 1,
-      "desc": """[[SELinux]] is an inode-based MAC. See [https://fedoraproject.org/wiki/SELinux this page]
+      "desc": """[[SELinux]] is an inode-based MAC. See [[SELinux|this page]]
 and [http://docs.redhat.com/docs/en-US/Red_Hat_Enterprise_Linux/6/html/Security-Enhanced_Linux/index.html this page]
 for more information.
 """ },
@@ -53,11 +53,10 @@ for more information.
     {"name": "selinux-targeted", "short": "SELinux targeted policy",
       "depth": 1,
       "desc": """SELinux enabled with targeted policy by default.
-See [http://fedoraproject.org/wiki/SELinux/Policies discussion of policies page]
+See [[SELinux/Policies|discussion of policies page]]
 and [http://docs.redhat.com/docs/en-US/Red_Hat_Enterprise_Linux/6/html/Security-Enhanced_Linux/index.html this page]
 for more information.
 """ },
-
 
     {"name": "selinux_EMP", "short":"SELinux Executable Memory Protection",
       "depth": 1,
@@ -65,7 +64,6 @@ for more information.
       "desc": """SELinux restricts certain memory protection operation if the appropriate boolean values enable these checks.
 See [http://www.akkadia.org/drepper/selinux-mem.html this page] for more information.
 """ },
-
 
 
     {"name": "hashing", "short": "Password hashing",
@@ -91,137 +89,18 @@ to brute-force. See the crypt(3) manpage for additional details.
       "depth": 1,
       "desc": """The need for setuid applications can be reduced via the
 application of [http://www.olafdietsche.de/linux/capability/ filesystem capabilities]
-using the xattrs available to most modern filesystems. This
-reduces the possible misuse of vulnerable setuid applications. The kernel
-provides the support and the user-space tools are available in the
-standard repositories.
-
-Capabilities are defined in /usr/include/linux/capability.h
-
-Linux Capability Version 1
-"_LINUX_CAPABILITY_U32S_1" defined as 1 indicates kernel has 32 or less capabilities
-
-Linux Capability Version 2
-constant "_LINUX_CAPABILITY_U32S_2" defined as 2 indicated kernel has more than 32 capabilities,
-
-Linux Capability Version 3
-
-"_LINUX_CAPABILITY_U32S_2" is deprecated by "_LINUX_CAPABILITY_U32S_3"
-
-32 bit integer is in /proc/sys/kernel/cap_last_cap which defines the current capability sets
-Every linux process has sets of bitmaps
-
-<pre>
-  typedef struct __user_cap_data_struct {
-        __u32 effective;
-        __u32 permitted;
-        __u32 inheritable;
-  } *cap_user_data_t;
-</pre>
-
-each capability is implemented as a bit in each of these bitmaps which is either set or unset.
-
-1. effective (E)
-Effective capability set indicates which capabilities are effective. When some privileged operation
-is done, operating system checks for the bit in effective set of the processes rather than effective uid.
-
-2. permitted (P)
-Indicates which capabilities process can use. Process might have capabilities set in permitted set
-but not in the effective set, that would mean that particular capability is disabled for the process
-Process can set capability in effective set only if it is available in permitted set.
-
-This combinations of effective and permitted bits allow to enable , disable and drop privileges
-
-3. inheritable (I)
-Inheritable capability set indicates which capabilities are inheritable by the process which is going
-to be executed by the current process.
-
-If P1 has X capabilities , then the process P1' which is ran or forked by P1 for example using exec(),
-how many capabilities out of X can be inherited by P1' is decided by inheritable capabilities set.
-
-The need for setuid applications can be reduced via the
-application of [http://www.olafdietsche.de/linux/capability/ filesystem capabilities]
-using the xattrs available to most modern filesystems. This
-reduces the possible misuse of vulnerable setuid applications. The kernel
-provides the support and the user-space tools are available in the
-standard repositories.
-
-Programmes have been vulnerable to set-UID, there is no need for having root
-privileges every time for a process to run, it is logical to provide to minimum
-set of privileges to programme that can enable the programme to run
-effectively. With the normal set-UID approach programmes would run more than
-the privileges required, increasing the risk of Privilege Escalation. Enabling
-Capabilities to programme has been started since kernel 2.6.24 known as file
-capability implemented in fs/exec.c in Kernel itself.
-
-Common capabilities are implemented in security/commoncap.c
-
-Implementation in Red Hat Enterprise Linux
-
-{| class="wikitable"
-|   RELEASE   ||   KERNEL     || CAPABILITY
-|-
-| [[RHEL 2]]  || 2.4.9-e.X    ||     N
-|-
-| [[RHEL 3]]  || 2.4.21-X     ||     N
-|-
-| [[RHEL 4]]  || 2.6.9-X      ||     Y
-|-
-| [[RHEL 5]]  || 2.6.18-X     ||     Y
-|-
-| [[RHEL 6]]  || 2.6.32-X     ||     Y
-|}
-
-==== Modifying Filesystem Capabilities ====
-
-There is no specific system call provided by the linux to modify filesystem capabilities.
-But as its implemented as inode getxattr() , fsetxattr system calls can be used.
-
-Here "$" means normal user and "#" means root user. Let's take 'ping' as working example
-to show how capabilities work.
-
-  $ mkdir CapabilityTest
-  $ cd CapabilityTest
-  $ cp `which ping` .
-
-  $ ./ping -q -c 1 127.0.0.1
-  ping: icmp open socket: Operation not permitted
-
-  # ./ping -q -c 1 127.0.0.1
-  PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.
-  --- 127.0.0.1 ping statistics ---
-  1 packets transmitted, 1 received, 0% packet loss, time 0ms
-  rtt min/avg/max/mdev = 0.213/0.213/0.213/0.000 ms
-
-  # setcap cap_net_raw=ep ./ping
-  # getcap ./ping
-  ./ping = cap_net_raw+ep
-  $ ./ping -q -c 1 127.0.0.1
-  PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.
-  --- 127.0.0.1 ping statistics ---
-  1 packets transmitted, 1 received, 0% packet loss, time 0ms
-  rtt min/avg/max/mdev = 0.170/0.170/0.170/0.000 ms
-
-from administrators perspective effective bit has to be disabled , so logical way of doing this will  be
-
-  # setcap cap_net_raw=p ./ping
-  # getcap ./ping
-  ./ping = cap_net_raw+p
-
-  $ ./ping -q -c 1 127.0.0.1
-  PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.
-  --- 127.0.0.1 ping statistics ---
-  1 packets transmitted, 1 received, 0% packet loss, time 0ms
-  rtt min/avg/max/mdev = 0.170/0.170/0.170/0.000 ms
-
-from that it can be concluded that, ping requires more privileges then a normal user for specially
-crafted network packets, so while running with 'root' user it works as 'root' has all effective
-capabilities. In the Linux Kernel there is a check which sees if application is capable, which means
-to run it should have effective capability for CAP_NET_RAW.
-
-Using set-UID root makes 'ping' over privileged, if buffer overflow is detected
-then attacker could do local privilege escalation giving back shell.
+using the xattrs available to most modern filesystems. This reduces the
+possible misuse of vulnerable setuid applications. The kernel provides the
+support and the user-space tools are available in the libcap package.
 """ },
+
+    {"name": "seccomp", "short":"PR_SET_SECCOMP",
+      "depth": 1,
+      "desc": """Setting SECCOMP(SECure COMPuting) for a process is meant to confine it to a small subsystem of system calls, used for specialized processing-only programs.
+See [http://lwn.net/Articles/507067/ this article] and [http://lwn.net/Articles/332974/ SECCOMP article]
+for more information.
+""" },
+
 
     {"name": "mac", "short":"Mandatory Access Control (MAC)",
       "depth": 0,
@@ -234,7 +113,7 @@ Unclassified -> Confidential -> Secret -> Top Secret.If user has clearance to ac
 then user will be allowed otherwise user will be denied access. It is a system wide policy which states that
 who is allowed to access, an individual user cannot alter the access. MAC model is mostly used in environment
 where confidentiality is important like in Government organizations like military, an example of widely used
-of MAC is SELinux.Security-Enhanced Linux (SELinux) employs MAC rules to facilitate fine-grained security. 
+of MAC is SELinux.Security-Enhanced Linux (SELinux) employs MAC rules to facilitate fine-grained security.
 
 see [http://docs.fedoraproject.org/en-US/Fedora/13/html/SELinux_FAQ/index.html#id4228000 MAC]
 """ },
@@ -258,7 +137,7 @@ root                 unconfined_u         s0-s0:c0.c1023       *
 system_u             system_u             s0-s0:c0.c1023       *
 </pre>
 All the linux users are mapped to __default__ which maps to unconfined_u user. SELinux users that are available are
-guest_u, xguest_u, user_u, staff_u. 
+guest_u, xguest_u, user_u, staff_u.
 
 <pre>
 # ls /etc/selinux/targeted/contexts/users
@@ -287,76 +166,14 @@ As listed http://docs.fedoraproject.org/en-US/Fedora/13/html/Security-Enhanced_L
 
 Users are defined in /etc/selinux/<target or mls>/contexts/users.
 
-See [http://docs.fedoraproject.org/en-US/Fedora/13/html/Security-Enhanced_Linux/sect-Security-Enhanced_Linux-Targeted_Policy-Confined_and_Unconfined_Users.html Confined and Unconfined Users]
+See [http://docs.fedoraproject.org/en-US/Fedora/13/html/Security-Enhanced_Linux/sect-Security-Enhanced_Linux-Targeted_Policy-Confined_and_Unconfined_Users.html Confined and Unconfined Users article]
 for more information.
 """ },
 
     {"name": "XACE", "short":"SELinux XACE",
       "depth": 1,
       "desc": """
-Support for SELinux X Access Control Extension (XACE).
-XACE (X Access Control Extension) provides a wrapper to do security checks at
-places where untrusted clients should be restricted. XACE provides control over
-X server objects including colormaps, windows, pixmaps, cursors, fonts which are
-assigned unique ID numbers stored. ID numbers can store client ID numbers so
-that resources can be allocated to the clients. clients access resources by the
-their ID numbers when making protocol requests. Developer can place XACE hooks
-in the code at the places where clients should be restricted. XACE hooks when
-present in the code triggers different types of hooks, for e.g while
-authenticating XACE_AUTH_AVAIL hook can be placed there, if code present in the
-application tries to access any device like system bell, cdrom etc.
-XACE_DEVICE_ACCESS hook can be used similarly there are more hooks present in
-XACE, to use #include<Xext/xace.h> is the header to be included which includes
-everything with constants and function declarations, if only structure
-definitions are needed use #include<Xext/xacestr.h>
-
-List of Hook Identifiers:
-
- XACE_CORE_DISPATCH
- XACE_EXT_DISPATCH
- XACE_RESOURCE_ACCESS
- XACE_DEVICE_ACCESS
- XACE_PROPERTY_ACCESS
- XACE_SEND_ACCESS
- XACE_RECEIVE_ACCESS
- XACE_CLIENT_ACCESS
- XACE_EXT_ACCESS
- XACE_SERVER_ACCESS
- XACE_SELECTION_ACCESS
- XACE_SCREEN_ACCESS
- XACE_SCREENSAVER_ACCESS
- XACE_AUTH_AVAIL
- XACE_KEY_AVAIL
- XACE_AUDIT_BEGIN
- XACE_AUDIT_END
-
-with each identifier there is a callback function attached
-
-For complete information about XACE and security hooks provided by it : http://www.x.org/releases/X11R7.5/doc/security/XACE-Spec.html
-
-XACE security hooks can be used like for e.g in case of DEVICE ACCESS:
-
-
-<pre>
- #include<Xext/xace.h>
- #include<dix-config.h>
- static int check_something(DeviceIntPtr dev, ClientPtr client, ....<some_other_args>) {
-
-	int res;
-
-	/* DixManageAccess : Global device configuration is being performed.
-         * on ChangeKeyboardMapping, XiChangeDeviceControl, XkbSetControls
-	 * http://www.x.org/releases/X11R7.5/doc/security/XACE-Spec.html#device_access_hook
-	 */
-
-        res = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixManageAccess);
-	if (res != Success) {
-		client->errorValue = dev->id;
-		return res;
-	}
- }
-</pre>
-
+SELinux X Access Control Extension (XACE) aims at extending SELinux to X.org system, to provide flexible fine-grained MAC to the desktop.
 """ },
 
     {"name": "SELinuxSandbox", "short": "SELinux sandbox",
@@ -369,41 +186,11 @@ for more information.
 """ },
 
 
-
-
-    {"name": "seccomp", "short":"PR_SET_SECCOMP",
-      "depth": 1,
-      "desc": """SECCOMP(SECure COMPuting) which is meant to condine it to small subsystem of system
-calls, is available since Linux 2.6.23. PR_SET_SECCOMP set the secure computing 
-mode for the the calling thread this limits the system calls for using this in 
-code #include<linux/seccomp.h> and #include<sys/prctl.h>. The  systemd init daemon
-supports the seccomp filter mecahnism in 3.5 kernel. The result is that process can
-be easily configured to be run in a sandboxed environment.
-
-<pre>
- #include<sys/prctl.h>
- #include<linux/seccomp.h>
- int main() {
-
-  /* int prctl(int option, unsigned long arg2, unsigned long arg3, 
-   * unsigned long arg4, unsigned long arg5);
-   * option is PR_SET_SECCOMP, rest args are set according to option passed into
-   * prctl function.
-   */
-
-   prctl(PR_SET_SECCOMP,SECCOMP_MODE_STRICT,0,0,0);
-   _exit(0);
-}
-</pre>
-See [http://lwn.net/Articles/507067/ this article] and [http://lwn.net/Articles/332974/ SECCOMP] 
-for more information.
-""" },
-
-        {"name": "SELinuxDenyPtrace", "short":"SELinux Deny Ptrace",
+    {"name": "SELinuxDenyPtrace", "short":"SELinux Deny Ptrace",
       "depth": 1,
       "desc": """
 A boolean variable to allow SELinux to turn off all processes ability to ptrace other process.
-See [https://fedoraproject.org/wiki/Features/SELinuxDenyPtrace this page]
+See [[Features/SELinuxDenyPtrace|this page]]
 and [http://lwn.net/Articles/491440/ this] for more information.
 """ },
 
@@ -447,28 +234,28 @@ world writable folders add an extra layer to protect from further intrusion into
 instance of /tmp or /var/tmp directory is created for each user. This feature is implemented using ''pam_namespace.so''.
 To enable this feature :
 
-uncomment the respective lines in /etc/security/namespace.conf 
+uncomment the respective lines in /etc/security/namespace.conf
 <pre>#/tmp     /tmp-inst/            level      root,adm
 #/var/tmp /var/tmp/tmp-inst/    level      root,adm
 # Remove the line below if required to polyinstantiate HOME directory of the user
 #$HOME    $HOME/$USER.inst/     level</pre>
 
-add 
+add
 <pre> session    required     pam_namespace.so </pre>
 to /etc/pam.d/login. File /etc/security/namespace.conf specifies which directories will be polyinstantiated. It also specifies
 how they will be polyinstantiated , what will the names of the directories which will be polyinstantiated and also for users where
 Polyinstantiation would not be performed.
 
 create the directories and set selinux context and bool value to polyinstantiate
-<pre>~]# mkdir /tmp-inst /var/tmp-inst
-~]# chmod 000 /tmp-inst
-~]# chmod 000 /var/tmp-inst
-~]# chcon -R -t tmp_t /tmp-inst
-~]# chcon -R -t tmp_t /var/tmp-inst
-~]# setsebool polyinstantiation_enabled 1</pre>
+<pre># mkdir /tmp-inst /var/tmp-inst
+# chmod 000 /tmp-inst
+# chmod 000 /var/tmp-inst
+# chcon -R -t tmp_t /tmp-inst
+# chcon -R -t tmp_t /var/tmp-inst
+# setsebool polyinstantiation_enabled 1</pre>
 
-* ~$ man 8 pam_namespace
-* ~$ man 5 namespace.conf
+* $ man 8 pam_namespace
+* $ man 5 namespace.conf
 
 As per reference https://www.ibm.com/developerworks/library/l-polyinstantiation/
 
@@ -548,7 +335,7 @@ is in effect:
 * Partial Emulation (via segment limits):
 **  [    0.000000] Using x86 segment limits to approximate NX protection
 
-For more information, see [https://fedoraproject.org/wiki/Security_Features?rd=Security/Features#Exec-Shield Security Features] page.
+For more information, see [[Security_Features?rd=Security/Features#Exec-Shield|Security Features]] page.
 
 """ },
 
@@ -560,12 +347,15 @@ against "return-to-text" and generally frustrates memory corruption
 attacks. This requires centralized changes to the compiler options when
 building the entire archive. PIE has a large (5-10%) performance penalty
 on architectures with small numbers of general registers (e.g. x86), so it
-should only be used for a [https://fedoraproject.org/wiki/Hardened_Packages select number of security-critical packages].
+should only be used for a [[Hardened_Packages|select number of security-critical packages]].
 PIE on x86_64 does not have the same penalties, and will eventually be made the
 default, but more testing is required. See
 [http://www.akkadia.org/drepper/nonselsec.pdf this paper] and this
 [https://fedorahosted.org/fesco/ticket/1113 FESCo ticket] for more
 information.
+
+In Fedora 23 and later, all packages are built with PIE and Full RELRO. See
+[[Changes/Harden_All_Packages|this page]] for details.
 """ },
 
     {"name": "pointer-obfuscation", "short":"Pointer Obfuscation",
@@ -586,7 +376,7 @@ provides corrupted-list/unlink/double-free/overflow protections to the
 glibc heap memory manager (first introduced in glibc 2.3.4). This stops
 the ability to perform arbitrary code execution via heap memory overflows
 that try to corrupt the control structures of the malloc heap memory
-areas.This protection has evolved over time, adding more and more protections as
+areas. This protection has evolved over time, adding more and more protections as
 additional [http://www.phrack.com/issues.html?issue=66&id=10#article corner-cases were researched].
 As it currently stands, glibc 2.10 and later appears to successfully resist
 even these hard-to-hit conditions. See [http://www.redhat.com/magazine/009jul05/features/execshield/#overflows this page]
@@ -613,7 +403,7 @@ that protects against stack overflows, and reduces the chances of
 arbitrary code execution via controlling return address destinations.
 Enabled at compile-time. The routines used for stack checking are actually
 part of glibc, but gcc is patched to enable linking against those routines
-by default. See [https://fedoraproject.org/wiki/Security_Features?rd=Security/Features#Stack_Smash_Protection.2C_Buffer_Overflow_Detection.2C_and_Variable_Reordering this page]
+by default. See [[Security_Features?rd=Security/Features#Stack_Smash_Protection.2C_Buffer_Overflow_Detection.2C_and_Variable_Reordering|this page]]
 for more information.
 """ },
 
@@ -625,70 +415,19 @@ loader by randomizing the location of memory allocations (stack, heap,
 shared libraries, etc). This makes memory addresses harder to predict when
 an attacker is attempting a memory-corruption exploit. ASLR is controlled
 system-wide by the value of ''/proc/sys/kernel/randomize_va_space''.
-* 0 - No randomization, everything would get loaded at same address
-* 1 - Partial randomization, shared libraries , stack, mmap(), VDSO and heap are randomized
-* 2 - Full Randomization, in addition to Partial Randomization it randomizes Memory managed through brk().
+* 0 - Turn ASLR off.
+* 1 - Make the addresses of mmap(2) allocations, the stack, loaded shared libraries and the VDSO page randomized.
+* 2 - Also support heap randomization in additon.
 
-ASLR on 32 bit systems is less effective as compared to 64 bit systems. It depends upon the amount of entropy
-available.
-
-<pre>
-#include<stdlib.h>
-#include<stdio.h>
-
-void* __get_eip() {
-  
-/* http://gcc.gnu.org/onlinedocs/gcc/Return-Address.html
- * This function returns the return address of the currentfunction,or of
- * one of its callers. The level argument is number of frames to scan up
- * the call stack. A value of 0 yields the return address of the current
- * function, a value of 1 yields the return address of the caller of the
- * current function, and so forth. When inlining the expected behavior is
- * that the function returns the address of the function that is returned
- * to. To work around this behavior use the noinline function attribute. 
- */
-
-  return __builtin_return_address(0)-0x5;
- 
-};
-
-int main(int argc, char **argv) {
-  printf("EBP located at: %p\n",__get_eip());
-  return 0;
-}
-</pre>
-
-<pre>
-~]$ cat /proc/sys/kernel/randomize_va_space
-2
-
-~]$ gcc get_eip.c -o get_eip
-
-~]$ ldd ./get_eip
-        linux-vdso.so.1 =>  (0x00007fff9a330000)
-        libc.so.6 => /lib64/libc.so.6 (0x0000003e9da00000)
-        /lib64/ld-linux-x86-64.so.2 (0x0000003e9d600000)
-~]$ ldd ./get_eip
-        linux-vdso.so.1 =>  (0x00007fffe77b1000)
-        libc.so.6 => /lib64/libc.so.6 (0x0000003e9da00000)
-        /lib64/ld-linux-x86-64.so.2 (0x0000003e9d600000)
-
-~]$ ./get_eip
-EBP located at: 0x400552
-
-~]$ ./get_eip
-EBP located at: 0x400552
-</pre>
-
-As from the test it can be seen that even if FULL Randomization is enabled, .text section remains static,
-to  make ASLR effective all segments must be randomized, leaving some segment non randomized neutralizes
-protection provided by the ASLR, attacker can use this non randomized area to identify gadgets and can
-build exploit. So even if ASLR is forced not all the segments are randomized for all executable. Code
-segement and Text segment dont get randomized until compiled with PIE (Position Independent Executable).
+Even when randomize_va_space is set to 2, the text segment of binaries is
+loaded at a static address. To make ASLR effective all segments must be
+randomized. Leaving the text segment loading address non-randomized reduces the
+protection provided by the ASLR since the attackers can use ret2text attacks.
+The loading address of the text segement in a binary can be randomized by
+building the binary as PIE (Position Independent Executable).
 
 See [http://www.redhat.com/magazine/009jul05/features/execshield/#preventing-abuse this article] and
-[http://lwn.net/Articles/190139/ this article] for more information. ASLR is now enabled for all packages
-by default in Rawhide.
+[http://lwn.net/Articles/190139/ this article] for more information.
 """ },
 
     {"name": "stack-aslr", "short":"Stack ASLR",
@@ -709,7 +448,7 @@ available in the mainline kernel since 2.6.15.
 """ },
 
     {"name": "exec-aslr", "short":"Exec ASLR",
-      "depth": 1,
+      "depth": 2,
       "desc": """Each execution of a program that has been built with "-fPIE
 -pie" will get loaded into a different memory location. This makes it
 harder to locate in memory where to attack or jump to when performing
@@ -740,7 +479,7 @@ use "vdso=2" on the kernel boot command line to gain COMPAT_VDSO again. See
       "comment" : "Support for ELF Data Hardening",
       "desc": """RELRO stands for RELocation Read-Only, it is a mitigation technique to harden
 data sections of an ELF/process. It is used to move commonly exploited structures
-in ELF binary to a read-only location.It Hardens ELF programs against loader memory
+in ELF binary to a read-only location. It Hardens ELF programs against loader memory
 area overwrites by having the loader mark any areas of the relocation table as read-only
 for any symbols resolved at load-time ("read-only relocations"). This reduces the area of
 possible GOT-overwrite-style memory corruption attacks, specially the GOT is made read-only
@@ -761,42 +500,19 @@ Full RELRO
 * Supports all the features of partial RELRO
 * In addition , GOT is also remapped  as read-only
 
-Only Full RELRO can protect from exploiting technique of overwriting GOT entry to get
-control over program execution flow.
-
-So the question is what are GOT and PLT?
-
-GOT (Global Offset Table) redirects position independent address calculations to an absolute
-location and is located in .got section of an ELF executable or shared object. It has the final
-location of a function calls symbol, used with dynamically linked code. By default GOT is created
-dynamically while program is running. The first time function is called GOT contains pointer back
-to PLT (Procedure Linkage Table), where linker is called to find actual location of the function.
-The location found is written to GOT, Second time whenever the function is called GOT already
-knows location of the function known as lazy binding.
-
-PLT (Procedure Linker Table) works with GOT to reference and relocate functions. PLT reference will
-cause a jmp into the GOT and find the location of the called function. On the first call there wont
-be no entry in GOT, so PLT will hand over the request to the rtld for resolving the function's
-absolute location, after this GOT will be updated for future references.
-
-Few Constraints about PLT and GOT
-
-1. PLT will always contain code that is called by program directly,so it will be allocated at a
-known offset from the .text segment.
-
-2. GOT contains data used by different parts of the program directly,so it will be at a static
-address in the memory.
-
-3. As GOT is "lazy binded",so it needs to be writable
-
-In case of a bss or data overflow bug both partial and full RELRO can protect the ELF internal data sections from being overwritten.
-With full RELRO a working mitigation technique to successfully prevent the modification of GOT entries is available.Only one reason
-why full RELRO is not widely used is that the startup of processes is slowed down as the linker has to perform all relocations at startup time.
+In case of a bss or data overflow bug both partial and full RELRO can protect
+the ELF internal data sections from being overwritten. With full RELRO a
+working mitigation technique to successfully prevent the modification of GOT
+entries is available. Full RELRO has been enabled for all packages in Fedora 23
+and later.
 
 In short, RELRO hardens ELF programs against loader memory area overwrites by
 having the loader mark any areas of the relocation table as read-only for
 any symbols resolved at load-time ("read-only relocations"). This reduces
-the area of possible GOT-overwrite-style memory corruption attacks."""
+the area of possible GOT-overwrite-style memory corruption attacks.
+
+This information has been borrowed from [http://tk-blog.blogspot.in/2009/02/relro-not-so-well-known-memory.html this article].
+"""
     },
 
     {"name": "bindnow", "short":"Built with BIND_NOW",
@@ -863,6 +579,84 @@ attach to other running processes (e.g. SSH sessions, GPG agent,
 etc) to extract additional credentials and continue to immediately expand the scope
 of their attack without resorting to user-assisted phishing or trojans.
 It is provided by YAMA , can be enabled by CONFIG_SECURITY_YAMA in the kernel.
+
+Independent of this configuration, processes that know they store secrets in
+memory may already use <code>prctl(PR_SET_DUMPABLE,0);</code> to prevent ptrace ''and other''
+memory-snooping attacks.
+""" },
+
+    {"name": "newoperator", "short": "Overflow checking in new operator",
+      "depth": 1,
+      "desc": """
+GCC performs overflow checking in operator new[]. new operator is used to dynamically
+allocate memory.It throws bad_alloc exception, header to include for using it is <new>
+new() or new[]() without declaration of exception cannot signal memory exhaustion.If
+there is an option to choose between calloc/malloc/new for allocation of the memory,
+new should be used. If new[] is used to allocate memory then delete[] should be used to
+free the allocated memory. Using delete without [] will cause memory leak. Use try-catch
+block with new, as it throws exception and does not return value, though it can be forced
+to return a value by using nothrow.
+
+<pre>
+ using namespace std;
+ /* this should return a value */
+ alpha* pt = new (nothrow) alpha[200];
+
+ or it will throw bad_alloc exception which can be handled by the following code
+ class bad_alloc : public exception {
+ /* error to be thrown to be implemented here */
+ };
+ struct alpha_t{};
+
+ extern const alpha_t alpha;  // indicator for allocation to prevent exceptions
+
+ /* should throw exception */
+ int* ptr = new int[100000];
+
+ /* to avoid exception correct usage would be */
+ int* ptr = new(alpha) int[100000];
+</pre>
+
+See [https://securityblog.redhat.com/2012/10/31/array-allocation-in-cxx/ Array allocation in C++ article] for
+more information.
+
+"""},
+
+    {"name": "format-security", "short": "Built with Format Security",
+      "depth": 1,
+      "desc": """
+Enable "-Werror=format-security" compilation flag for all packages in Fedora. Once this flag is enabled,
+GCC will refuse to compile code that could be vulnerable to a string format security flaw.
+see [[Changes/FormatSecurity|Format Security]] for more information
+""" },
+
+    {"name": "crypto-policy", "short": "Crypto Policy",
+      "depth": 1,
+      "desc": """
+Unify the crypto policies used by different applications and libraries. That is allow setting a consistent
+security level for crypto on all applications in a Fedora system. The implementation approach will be to
+initially modify SSL libraries to respect the policy and gradually adding more libraries and applications.
+See [[Changes/CryptoPolicy|Crypto Policy]] for more information.
+""" },
+
+    {"name": "stack-protector-strong", "short": "Built with Stack Protector Strong",
+      "depth": 1,
+      "desc": """
+See [http://lwn.net/Articles/584225/ "Strong" stack protection for GCC] article for more information.
+""" },
+
+    {"name": "tamperproof", "short": "Tamper Resistant Logs",
+      "depth": 1,
+      "desc": """
+When a system is compromised, attackers might tamper the system logs. This can
+be prevented by using FSS (Forward Secure Sealing) which is implemented in
+the systemd journal. Binary logs maintained by systemd are sealed at certain time
+intervals. Sealing is an cryptographic operation on the logs so that any
+tempering on the logs can be detected, though an attacker can completely remove
+entire logs but this is likely to get noticed by the system administrator.
+
+See [http://danwalsh.livejournal.com/58647.html Forward Secure Sealing (FSS) article] for
+more information.
 """ },
 
     {"name": "kernel-hardening", "short":"Kernel Hardening",
@@ -967,8 +761,6 @@ and [http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=3
 for more details.
 """ },
 
-
-
     {"name": "sVirt", "short":"sVirt labelling",
       "depth": 1,
       "comment" : "mjc",
@@ -999,122 +791,22 @@ to kernel interfaces when potentially running untrusted software.
       "desc": """
 "Secure Boot" describes a UEFI feature by which malware is prevented from
 inserting itself into the boot process before the operating system loads.
-Secure Boot is an optional feature which can be enabled and disabled on will
-of user.
 
-For more indepth information about Secure boot see
-[http://fedoraproject.org/wiki/Features/SecureBoot]
-
-[http://docs.fedoraproject.org/en-US/Fedora/18/html/UEFI_Secure_Boot_Guide/chap-UEFI_Secure_Boot_Guide-What_is_Secure_Boot.html chap-UEFI_Secure_Boot_Guide-What_is_Secure_Boot]
-
-[http://www.uefi.org/sites/default/files/resources/UEFI_Secure_Boot_in_Modern_Computer_Security_Solutions_2013.pdf UEFI_Secure_Boot_in_Modern_Computer_Security_Solutions_2013.pdf]
-article for more details.
+For more in-depth information about Secure Boot see [[Features/SecureBoot|SecureBoot]],
+[http://docs.fedoraproject.org/en-US/Fedora/18/html/UEFI_Secure_Boot_Guide/chap-UEFI_Secure_Boot_Guide-What_is_Secure_Boot.html this] and
+[http://www.uefi.org/sites/default/files/resources/UEFI_Secure_Boot_in_Modern_Computer_Security_Solutions_2013.pdf this]
+articles.
 """ },
 
-    {"name": "tamperproof", "short": "Tamper Resistant Logs",
-      "depth": 1,
-      "desc": """
-When system get attacked attackers might tamper logs on the system being attacked, this can 
-be prevented by using FSS ( Forward Secure Sealing ) which is implemented in systemd journal.
-Binary logs maintained by systemd are sealed at certain time intervals. Sealing is an cryptographic
-operation on the logs so that any tempering on the logs can be detected, though an attacker can
-completely remove entire logs but this will get noticed by administrator too. FSS is based on 
-"Forward Secure Pseudo Random Generators" (FSPRG) 
-
-<pre>
-# journalctl --setup-keys
-</pre>
-
-there are two keys generated with this 
-
-1. Sealing key : It is stored on the system and after certain time intervals new sealing key is generated
-with the use of FSPRG and its a non-reversible process old key is deleted after this. 
-
-2. Verification Key : Verification key should be stored at safe place, could be phone device or any place
-else which can be trusted. This key can be used to generate sealing key at any point of given time. Attacker
-can only access current sealing key ,so changing the log files using current sealing key would result in 
-verification failure as it wont verify by the sealing key generated from Verification key.
-
-FSS will seal logs after every 15 min by default, which can be changed by using "--interval=60s" to seal logs
-after every minute. Default time 15min  is too much of time for attacker to work, so it should be changed accordingly
-by system administrators to harden such tasks for attackers.
-
-<pre>
-# journalctl --setup-keys --interval=60s
-</pre>
-
-Deleting of Old Sealing keys is handled by two file attributes FS_SECRM_FL and FS_NOCOW_FL, which may or may not be
-supported by filesystem in use.
-
-See [http://danwalsh.livejournal.com/58647.html Forward Secure Sealing (FSS) article] for
-more information.
-""" },
-
-    {"name": "newoperator", "short": "Overflow checking in new operator",
-      "depth": 1,
-      "desc": """
-GCC performs overflow checking in operator new[]. new operator is used to dynamically
-allocate memory.It throws bad_alloc exception, header to include for using it is <new>
-new() or new[]() without declaration of exception cannot signal memory exhaustion.If
-there is an option to choose between calloc/malloc/new for allocation of the memory,
-new should be used. If new[] is used to allocate memory then delete[] should be used to
-free the allocated memory. Using delete without [] will cause memory leak. Use try-catch
-block with new, as it throws exception and does not return value, though it can be forced
-to return a value by using nothrow.
-
-<pre>
- using namespace std;
- /* this should return a value */
- alpha* pt = new (nothrow) alpha[200];
-
- or it will throw bad_alloc exception which can be handled by the following code
- class bad_alloc : public exception {
- /* error to be thrown to be implemented here */
- };
- struct alpha_t{};
-
- extern const alpha_t alpha;  // indicator for allocation to prevent exceptions
-
- /* should throw exception */
- int* ptr = new int[100000];
-
- /* to avoid exception correct usage would be */
- int* ptr = new(alpha) int[100000];
-</pre>
-
-See [https://securityblog.redhat.com/2012/10/31/array-allocation-in-cxx/ Array allocation in C++ article] for
-more information.
-
-"""},
-    
-  {"name": "format-security", "short": "Built with Format Security",
-      "depth": 1,
-      "desc": """
-Enable "-Werror=format-security" compilation flag for all packages in Fedora. Once this flag is enabled, 
-GCC will refuse to compile code that could be vulnerable to a string format security flaw.
-see [http://fedoraproject.org/wiki/Changes/FormatSecurity Format Security] for more information
-"""},
-
-{"name": "crypto-policy", "short": "Crypto Policy",
-      "depth": 1,
-      "desc": """
-Unify the crypto policies used by different applications and libraries. That is allow setting a consistent 
-security level for crypto on all applications in a Fedora system. The implementation approach will be to 
-initially modify SSL libraries to respect the policy and gradually adding more libraries and applications.
-see [http://fedoraproject.org/wiki/Changes/CryptoPolicy Crypto Policy] for more information
-"""},
-
-{"name": "stack-protector-strong", "short": "Built with Stack Protector Strong",
-      "depth": 1,
-      "desc": """
-see [http://lwn.net/Articles/584225/ Stack Protector Strong] for more information
-"""},
     {"name": "notes", "short": "Additional Documentation",
      "depth": -1, "skip": True,
      "desc": """
 * Coordination with Ubuntu: https://wiki.ubuntu.com/Security/Features
 * Coordination with Debian: http://wiki.debian.org/Hardening
 * Gentoo's Hardening project: http://www.gentoo.org/proj/en/hardened/hardened-toolchain.xml
-"""},
+""" },
+
+
+
 
 ]
